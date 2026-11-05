@@ -1,11 +1,8 @@
 name: Generate RSS
 
 on:
-  # 30分ごとに自動実行 (cron式)
   schedule:
     - cron: '*/30 * * * *'
-  
-  # GitHubの画面から手動でも実行できるようにする設定
   workflow_dispatch:
 
 jobs:
@@ -13,40 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # リポジトリへの変更（XMLファイルの更新）を書き込む権限
+      contents: write
 
     steps:
-      # 1. リポジトリのコードをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Python環境のセットアップ
+      # cache: 'pip' を削除し、ファイルがなくてもエラーにならないように修正
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip' # キャッシュを有効にして高速化
 
-      # 3. 必要なライブラリのインストール
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 feedgen
 
-      # 4. スクリプト（main.py）の実行
       - name: Run main.py
         run: python main.py
 
-      # 5. 生成・更新されたXMLファイルを自動でコミット＆プッシュ
       - name: Commit and push if changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          # 変更があったファイル（bellmare.xmlなど）をステージング
           git add *.xml
           
-          # 変更がない場合はコミットせずに終了する分岐
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
