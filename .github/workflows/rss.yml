@@ -2,8 +2,9 @@ name: Generate Bellmare RSS
 
 on:
   schedule:
+    # 30分ごとに自動実行
     - cron: '*/30 * * * *'
-  workflow_dispatch:
+  workflow_dispatch: # 手動で即座に実行するボタン
 
 permissions:
   contents: write
@@ -15,19 +16,22 @@ jobs:
       - name: リポジトリのチェックアウト
         uses: actions/checkout@v4
 
-      # actions/setup-python を使わず、デフォルトのPython環境に直接インストールする
+      - name: Python環境のセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
       - name: ライブラリのインストール
         run: |
-          python3 -m pip install --upgrade pip
-          pip3 install requests beautifulsoup4 feedgen
+          pip install requests beautifulsoup4 feedgen
 
       - name: スクレイピングの実行
-        run: python3 main.py
+        run: python main.py
 
       - name: 生成したRSS（bellmare.xml）をコミットして保存
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add bellmare.xml
           git commit -m "Update RSS feed" || exit 0
           git push
